@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Policy — ZeptoShield</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="../index.html">Zepto<span>Shield</span></a>
+    <div class="nav__links">
+      <button class="nav__link" onclick="location.href='how.html'">How it works</button>
+      <button class="nav__link nav__link--active">My policy</button>
+      <button class="nav__cta" onclick="location.href='register.html'">Get protected</button>
+    </div>
+  </div>
+</nav>
+
+<main class="page fade-in">
+  <div class="form-wrap">
+    <div class="hero__eyebrow" style="display:inline-flex; margin-bottom:16px;">My account</div>
+    <h1 class="form-page__title">Find your policy.</h1>
+    <p class="form-page__sub">
+      New here? <a onclick="location.href='register.html'">Register first →</a>
+    </p>
+
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label" for="phone">Mobile number</label>
+        <input class="form-input" id="phone" type="tel" placeholder="9876543210" maxlength="10" inputmode="numeric" />
+      </div>
+      <button class="btn btn--primary btn--full" id="lookup-btn">Find my account →</button>
+
+      <div id="result" style="display:none;">
+        <div class="lookup-result">
+          <div class="lookup-result__name" id="r-name"></div>
+          <div class="lookup-result__sub" id="r-sub"></div>
+          <div class="lookup-grid">
+            <div>
+              <div class="lookup-field__label">Risk zone</div>
+              <div class="lookup-field__val" id="r-risk"></div>
+            </div>
+            <div>
+              <div class="lookup-field__label">Weekly premium</div>
+              <div class="lookup-field__val" id="r-prem"></div>
+            </div>
+            <div>
+              <div class="lookup-field__label">Policy status</div>
+              <div class="lookup-field__val" id="r-status"></div>
+            </div>
+            <div>
+              <div class="lookup-field__label">Total claims</div>
+              <div class="lookup-field__val" id="r-claims"></div>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--full" id="go-dash-btn">Go to dashboard →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__logo">Zepto<span>Shield</span></div>
+      <div class="footer__copy">© 2026 ZeptoShield</div>
+    </div>
+  </footer>
+</main>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  let foundPhone = "";
+
+  document.getElementById("lookup-btn").addEventListener("click", async () => {
+    const phone = document.getElementById("phone").value.trim();
+    if (phone.length < 10) {
+      Toast.show({ type: "error", title: "Invalid number", sub: "Enter your 10-digit mobile number." });
+      return;
+    }
+
+    const btn = document.getElementById("lookup-btn");
+    btn.disabled = true; btn.textContent = "Searching…";
+
+    const data = await ZS.api("GET", `/workers/${phone}`);
+
+    btn.disabled = false; btn.textContent = "Find my account →";
+
+    if (data.error) {
+      Toast.show({ type: "error", title: "Not found", sub: "No account found. Register first." });
+      document.getElementById("result").style.display = "none";
+      return;
+    }
+
+    foundPhone = phone;
+    const { worker, policy, claims } = data;
+    document.getElementById("r-name").textContent = worker.name;
+    document.getElementById("r-sub").textContent = `${worker.city} · Delivery Partner`;
+    document.getElementById("r-risk").textContent = worker.riskScore.charAt(0).toUpperCase() + worker.riskScore.slice(1);
+    document.getElementById("r-prem").textContent = `₹${worker.premium} / week`;
+    document.getElementById("r-status").textContent = policy ? "Active ✓" : "Not activated";
+    document.getElementById("r-status").style.color = policy ? "var(--success)" : "var(--warn)";
+    document.getElementById("r-claims").textContent = `${claims.length} claim${claims.length !== 1 ? "s" : ""}`;
+    document.getElementById("result").style.display = "block";
+  });
+
+  document.getElementById("go-dash-btn").addEventListener("click", () => {
+    location.href = `dashboard.html?phone=${foundPhone}`;
+  });
+</script>
+</body>
+</html>
